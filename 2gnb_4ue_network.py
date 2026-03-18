@@ -5,11 +5,46 @@ import os
 
 from comnetsemu.cli import CLI
 from comnetsemu.net import Containernet
-from mininet.link import TCLink
+# from mininet.link import TCLink
+from comnetsemu_5gs_dynamicLink.smooth_link import TCLink
 from mininet.log import info, setLogLevel
 from mininet.node import Controller
 from python_modules.Open5GS import Open5GS
 import json
+
+
+
+"""
+Smoothly change link properties between two nodes in the Comnetsemu net.
+
+bw_mbit: bandwidth in Mbit/s (float or int)
+delay_s: delay in seconds (float)
+max_queue_size: queue size (int)
+smooth: if True, use smooth_change=True in TCIntf.config
+"""
+def set_link_properties(net, node1_name, node2_name,
+                        bw_mbit=None, delay_s=None,
+                        max_queue_size=None, smooth=True):
+    node1 = net.get(node1_name)
+    node2 = net.get(node2_name)
+
+    intf1, intf2 = node1.connectionsTo(node2)[0]
+
+    delay_str = None
+    if delay_s is not None:
+        # TCIntf expects something like "10ms"
+        delay_str = f"{delay_s * 1000:.3f}ms"
+
+    for intf in (intf1, intf2):
+        intf.config(
+            bw=bw_mbit,
+            delay=delay_str,
+            max_queue_size=max_queue_size,
+            smooth_change=smooth,
+        )
+
+
+
 
 if __name__ == "__main__":
 
