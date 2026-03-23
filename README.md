@@ -114,3 +114,52 @@ in my case output is : <br>
 ___vagrant___
 
 ---
+
+---
+
+## 🔧 Fork Extension: Dynamic Link Reconfiguration
+
+This fork extends the original project by introducing **runtime-configurable network links**, inspired by the LeoEM emulator.
+
+The original Comnetsemu-5GS does not support changing link properties during execution. This extension enables **dynamic updates of bandwidth, delay, and queue parameters without restarting the network**. :contentReference[oaicite:0]{index=0}
+
+### What was added
+
+- `smooth_link.py`: custom implementation of `TCLink` and `TCIntf`
+- Modified `2gnb_4ue_network.py`
+- New helper function: `set_link_properties(...)`
+
+The default Mininet import:
+
+```python
+from mininet.link import TCLink
+```
+
+was replaced with:
+
+```python
+from comnetsemu_5gs_dynamicLink.smooth_link import TCLink
+```
+
+so that all links support dynamic updates.
+
+The extension modifies Mininet’s traffic control behavior by introducing a smooth update mechanism.
+
+Instead of recreating link configurations, it uses Linux tc commands:
+
+- 'tc class change' to update bandwidth
+- 'tc qdisc replace' to update delay, loss, and queue size
+
+This allows modifying link properties in-place, avoiding disruption.
+
+A helper function was added:
+'''python
+def set_link_properties(net, node1_name, node2_name,
+                        bw_mbit=None, delay_s=None,
+                        max_queue_size=None, smooth=True):
+'''
+Example:
+'''python
+set_link_properties(net, "s2", "s3", bw_mbit=100, delay_s=0.05)
+'''
+This dynamically updates the link between s2 and s3 during runtime.
